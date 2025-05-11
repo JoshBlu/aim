@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-function usage() {
+usage() {
 	echo "Usage: aim [OPTIONS] APPIMAGE"
 	echo ""
 	echo "Installs APPIMAGE and creates a desktop file."
@@ -24,10 +24,15 @@ while getopts ":h" opt; do
 			usage
 			exit 0
 			;;
+		* )
+			echo "Invalid option: $opt"
+			usage
+			exit 1
+			;;
 	esac
 done
 
-if [[ -z "$APPIMAGE" || ! -f "$APPIMAGE" ]]; then
+if [ -z "$APPIMAGE" ] || [ ! -f "$APPIMAGE" ]; then
 	usage
 	exit 1
 fi
@@ -37,17 +42,22 @@ mkdir -p "$APP_DIR" "$DESKTOP_DIR"
 FILENAME="$(basename "$APPIMAGE")"
 DEST="$APP_DIR/$FILENAME"
 install "$APPIMAGE" "$DEST"
+if [ -n "$PRESERVE" ]; then
+	rm "$APPIMAGE"
+fi
 
 NAME="${FILENAME%%.AppImage}"
 
 ICON_PATH="$DESKTOP_DIR/$NAME.png"
 "DEST" --appimage-extract > /dev/null 2>&1
-if [[ -f squashfs-root/*.png ]]; then
-	cp squashfs-root/*.png "$ICON_PATH"
-	ICON="$ICON_PATH"
-else
-	ICON=""
-fi
+for img in squashfs-root/*.png; do
+	if [ -f "$img" ]; then
+		cp squashfs-root/*.png "$ICON_PATH"
+		ICON="$ICON_PATH"
+	else
+		ICON=""
+	fi
+done
 rm -rf squashfs-root
 
 DESKTOP_FILE="$DESKTOP_DIR/$NAME.desktop"
