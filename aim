@@ -33,7 +33,7 @@ mkdir -p "$APP_DIR" "$DESKTOP_DIR"
 
 FILENAME="$(basename "$APPIMAGE")"
 DEST="$APP_DIR/$FILENAME"
-install "$APPIMAGE" "$APP_DIR"
+install "$APPIMAGE" "$DEST"
 
 NAME="${FILENAME%%.AppImage}"
 
