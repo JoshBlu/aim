@@ -10,27 +10,37 @@ usage() {
 	echo ""
 	echo "Options:"
 	echo "  -h    Displays this text"
+	echo "  -p    Preserves the appimage file"
 }
 
 APP_DIR="$HOME/Applications"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 
 
-APPIMAGE="$1"
 
-while getopts ":h" opt; do
+while getopts ":hp" opt; do
 	case ${opt} in
-		h )
+		h)
 			usage
 			exit 0
 			;;
-		* )
+		p)
+			PRESERVE="1"
+			;;
+		:)
+			:
+			;;
+		*)
 			echo "Invalid option: $opt"
 			usage
 			exit 1
 			;;
 	esac
 done
+
+shift $((OPTIND - 1))
+
+APPIMAGE="$1"
 
 if [ -z "$APPIMAGE" ] || [ ! -f "$APPIMAGE" ]; then
 	usage
@@ -42,7 +52,7 @@ mkdir -p "$APP_DIR" "$DESKTOP_DIR"
 FILENAME="$(basename "$APPIMAGE")"
 DEST="$APP_DIR/$FILENAME"
 install "$APPIMAGE" "$DEST"
-if [ -n "$PRESERVE" ]; then
+if [ -z "$PRESERVE" ]; then
 	rm "$APPIMAGE"
 fi
 
