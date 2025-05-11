@@ -5,8 +5,11 @@ function usage() {
 	echo "Usage: aim [OPTIONS] APPIMAGE"
 	echo ""
 	echo "Installs APPIMAGE and creates a desktop file."
-	echo "Applications are installed to '~/Applications"
-	echo "Desktop files are created at '~/.local/share/applications'"
+	echo "  Applications are installed to '~/Applications"
+	echo "  Desktop files are created at '~/.local/share/applications'"
+	echo ""
+	echo "Options:"
+	echo "  -h    Displays this text"
 }
 
 APP_DIR="$HOME/Applications"
