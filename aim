@@ -1,0 +1,64 @@
+#!/bin/sh
+
+
+function usage() {
+	echo "Usage: aim [OPTIONS] APPIMAGE"
+	echo ""
+	echo "Installs APPIMAGE and creates a desktop file."
+	echo "Applications are installed to '~/Applications"
+	echo "Desktop files are created at '~/.local/share/applications'"
+}
+
+APP_DIR="$HOME/Applications"
+DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+
+
+APPIMAGE="$1"
+
+while getopts ":h" opt; do
+	case ${opt} in
+		h )
+			usage
+			exit 0
+			;;
+	esac
+done
+
+if [[ -z "$APPIMAGE" || ! -f "$APPIMAGE" ]]; then
+	usage
+	exit 1
+fi
+
+mkdir -p "$APP_DIR" "$DESKTOP_DIR"
+
+FILENAME="$(basename "$APPIMAGE")"
+DEST="$APP_DIR/$FILENAME"
+install "$APPIMAGE" "$APP_DIR"
+
+NAME="${FILENAME%%.AppImage}"
+
+ICON_PATH="$DESKTOP_DIR/$NAME.png"
+"DEST" --appimage-extract > /dev/null 2>&1
+if [[ -f squashfs-root/*.png ]]; then
+	cp squashfs-root/*.png "$ICON_PATH"
+	ICON="$ICON_PATH"
+else
+	ICON=""
+fi
+rm -rf squashfs-root
+
+DESKTOP_FILE="$DESKTOP_DIR/$NAME.desktop"
+cat > "$DESKTOP_FILE" <<EOF
+[Desktop Entry]
+Name=$NAME
+Exec=$DEST
+Icon=$ICON
+Type=Application
+Categories=Utility;
+Terminal=false
+EOF
+
+chmod +x "$DESKTOP_FILE"
+
+echo "AppImage registered: $NAME"
+
