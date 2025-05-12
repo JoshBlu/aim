@@ -73,11 +73,13 @@ if [ -z "$PRESERVE" ]; then
 fi
 
 #Try to get the icon from the AppImage
-"DEST" --appimage-extract > /dev/null 2>&1
-for img in squashfs-root/*.png; do
-	if [ -f "$img" ]; then
-		cp squashfs-root/*.png "$ICON_PATH"
+"$DEST" --appimage-extract > /dev/null 2>&1
+for IMG in squashfs-root/*.png; do
+	if [ -f "$IMG" ]; then
+		echo "Found icon: $IMG"
+		cp "$IMG" "$ICON_PATH"
 		ICON="$ICON_PATH"
+		break
 	else
 		ICON=""
 	fi
