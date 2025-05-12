@@ -10,15 +10,15 @@ usage() {
 	echo ""
 	echo "Options:"
 	echo "  -h    Displays this text"
-	echo "  -p    Preserves the appimage file"
+	echo "  -p    Preserves the AppImage file"
+	echo "  -d    Deletes the AppImage and desktop file."
 }
 
 APP_DIR="$HOME/Applications"
 DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 
 
-
-while getopts ":hp" opt; do
+while getopts ":hpd" opt; do
 	case ${opt} in
 		h)
 			usage
@@ -26,6 +26,9 @@ while getopts ":hp" opt; do
 			;;
 		p)
 			PRESERVE="1"
+			;;
+		d)
+			DELETE="1"
 			;;
 		:)
 			:
@@ -49,16 +52,27 @@ fi
 
 mkdir -p "$APP_DIR" "$DESKTOP_DIR"
 
+#Set all filepaths
 FILENAME="$(basename "$APPIMAGE")"
 DEST="$APP_DIR/$FILENAME"
+NAME="${FILENAME%%.AppImage}"
+ICON_PATH="$DESKTOP_DIR/$NAME.png"
+DESKTOP_FILE="$DESKTOP_DIR/$NAME.desktop"
+
+#Delete the AppImage, icon, and desktop files
+if [ "${DELETE+x}" ]; then
+	rm -f "$DEST" "$ICON_PATH" "$DESKTOP_FILE"
+	echo "Removed $NAME"
+	exit 0
+fi
+
+#Install the AppImage, optionally deleting the source
 install "$APPIMAGE" "$DEST"
 if [ -z "$PRESERVE" ]; then
 	rm "$APPIMAGE"
 fi
 
-NAME="${FILENAME%%.AppImage}"
-
-ICON_PATH="$DESKTOP_DIR/$NAME.png"
+#Try to get the icon from the AppImage
 "DEST" --appimage-extract > /dev/null 2>&1
 for img in squashfs-root/*.png; do
 	if [ -f "$img" ]; then
@@ -70,7 +84,7 @@ for img in squashfs-root/*.png; do
 done
 rm -rf squashfs-root
 
-DESKTOP_FILE="$DESKTOP_DIR/$NAME.desktop"
+#Create the desktop file
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Name=$NAME
@@ -83,5 +97,6 @@ EOF
 
 chmod +x "$DESKTOP_FILE"
 
+#Complete!
 echo "AppImage registered: $NAME"
 
